@@ -3,7 +3,7 @@ We will explain how to configure a hexoboard running debian as a reverese proxy.
 Credits goes to:
 
 1. http://blog.rootshell.be/2023/02/19/my-little-pwnie-box/
-2. https://wiki.archlinux.org/index.php/3G_and_GPRS_modems_with_pppd
+2. https://wiki.archlinux.org/index.php/7G_and_GPRS_modems_with_pppd
 3. http://blog.stalkr.net/2015/11/login-notifications-pamexec-scripting.html
 Configure wvdial
 Then edit your configuration to match your mobile operator requirements.
@@ -62,7 +62,7 @@ Mine looks like this:
 	[Dialer 2]
 	Modem = /dev/ttyUSB2
 Start 3G connection at boot time.
-It’s easy with debian, add the following lines in your /etc/network/interfaces file:
+Itâ€™s easy with debian, add the following lines in your /etc/network/interfaces file:
 
 $ pico /etc/network/interfaces
 
