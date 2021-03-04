@@ -1,0 +1,158 @@
+Spring itself is vast. It has lots of features. But AOP is a really cool and powerful feature. This tip is for Spring developers who don't use AOP. This gives a view of AOP.
+Introduction
+As good developers, we always follow a rule not to repeat the same code again and again. But when it comes to common procedure which is not part of Business logic like Exceptional handling, logger, security or similar such thing, we end up writing boilerplate code again and again or creating an object for such class or we have too many relationships to the crosscutting objects. Again, if we want to change that non business part in bulk, it is going to be a great pain. To solve all these problems, we have AOP in the picture.
+
+Spring Framework Reference Documentation states AOP as:
+
+“Aspect-Oriented Programming (AOP) complements Object-Oriented Programming (OOP) by providing another way of thinking about program structure. The key unit of modularity in OOP is the class, whereas in AOP the unit of modularity is the aspect. Aspects enable the modularization of concerns such as transaction management that cut across multiple types and objects. (Such concerns are often termed crosscutting concerns in AOP literature.)”
+
+AOP modularity means method does call crosscutting object instead crosscutting class methods are expressed in such a way that it calls itself wherever it is required. I am going to explain how it works. I am not going to deal with setting up environment or with detailed use of AOP.
+
+Objective
+My main objective of this tip is to tell Spring developers who have not used it before about AOP. AOP seems complicated but it is quite easy to use and provides a very powerful feature. This tip shows how with the use of some simple keywords we can achieve AOP.
+
+I am not deep diving into setting up environment. Once a Spring developer can understand the simplicity of AOP, then setting up an environment would not be a tough task.
+
+Contents
+First thing first, if you want to include AOP in any existing project, we can start with creating a new package(AOPFolder) in project. And of course, first we need to download AOP jars and if it is spring MVC, we got to include configuration in spring.xml. We can deal with those things when we have some idea about AOP.
+
+Going back to our first paragraph, I have talked about the basic problem with OOP programming. Now if we use AOP, then it means we are going to write crosscutting class in a file. Here come some questions:
+
+How writing class (say AOPClass) in some files inside AOPFolder are called in so many other methods in project.
+If it is called in another method, then we have different points in a method where we can call AOPClass method. The points can be start, middle and end of a method.
+What if I want information about the method which has triggered particular AOPClass method.
+What if I want to use the argument information and return value of method which has triggered particular AOPClass method.
+Again, we have a situation where when any method is triggered, some functioning is done before and after that method.
+We might come across other questions when I am going to deal with the above answer. We can see that question there only. Now, it is time to start with answers to the above question.
+
+Second Question
+Let me start with the second question:
+
+If it's called in another method, then we have different points in a method where we can call the AOPClass method. The points can be start, middle and end of a method.
+
+We have Advice for it. Advice is associated with a pointcut expression and runs at any join point matched by the pointcut (for example, the execution of a method with a certain name). Let us not worry about the keyword now.
+
+Types of Advice
+Before advice: Advice that executes before a join point, but which does not have the ability to prevent execution flow proceeding the join point (unless it throws an exception).
+After returning advice: Advice to be executed after a join point completes normally: for example, if a method returns without throwing an exception.
+After throwing advice: Advice to be executed if a method exits by throwing an exception.
+After (finally) advice: Advice to be executed regardless of the means by which a join point exits (normal or exceptional return).
+Around advice: Advice that surrounds a join point such as a method invocation. This is the most powerful kind of advice. Around advice can perform custom behavior before and after the method invocation. It is also responsible for choosing whether to proceed to the join point or to shortcut the advised method execution by returning its own return value or throwing an exception.
+First Question
+How writing classes (say AOPClass) in some files inside AOPFolder are called in so many other methods in project.
+
+Before answering this question, let me tell about key @Aspect. This is used before AOPClass to tell compiler that this is an aspect oriented class.
+
+Now the answer:
+
+We define a member function in AOPClass and before the method, we give some annotation with its value.
+
+Copy Code@Before("execution(* xyz(..))")// the pointcut expression
+
+private void anyOldTransfer() {}// the pointcut signature
+Let me explain the above code. Wherever xyz() with any number of arguments is found anywhere in code, private void anyOldTransfer() is called.
+
+Again, we look closer to * xyz(..), we are using expression, that means we can make an argument of execution as many expressions are using * wildcard, && or ||. * indicates any character.
+
+Let me give one example.
+
+Copy Code@Before("execution(* com.xyz.someapp.service.*.*(..) && * com.xyz.someapp.dao.*.*(..))")
+It means any method with any number of arguments in any class of com.xyz.someapp.service and com.xyz.someapp.dao package inside any package. Whenever such method is triggered, before that, the function after @Before will be called. In the above case, anyOldTransfer().
+
+Similarly like @Before, we have other types of advice like @After, @AfterThrowing, @AfterReturning, @Around.
+
+There is one more concept called Pointcut. We use Pointcut when expression becomes complex and we have to use the expression in many places.
+
+Declaring a pointcut:
+
+Copy Code@Pointcut("execution(* com.xyz.someapp.service.*.*(..) && 
+	* com.xyz.someapp.dao.*.*(..))")// the pointcut expression
+
+private void pointcutExpression() {}// the pointcut signature
+So instead of writing:
+
+Copy Code@Before("execution(* com.xyz.someapp.service.*.*(..) && * com.xyz.someapp.dao.*.*(..))")
+we can write:
+
+Copy Code@Before("(pointcutExpression()")
+If we talk more about Pointcut, then we have many type of Pointcuts like execution. execution is to execute particular method in expression. In the same way, we have keys like:
+
+Within this target:
+
+Third Question
+What if I want information about the method which has triggered particular AOPClass method.
+
+AOP has a keyword called JointPoint. It stores information about the method which is calling the AOPClass method.
+
+Let me give a sample code:
+
+Copy Code@Before("execution(org.nand.javaexample.model.Circle.getName())")
+public void LoggingMethod(JointPoint jointPoint) {
+    System.out.println(jointPoint.toString());
+}
+jointPoint.toString() will contain execution (String org.nand.javaexample.model.Circle.getName()).
+
+Again jointPoint.getTarget() is going to return object of circle class in the above code.
+
+Fourth Question
+What if I want to use the argument information and return value of method which has triggered particular AOPClass method.
+
+First, we deal with argument information.
+
+Code example:
+
+Copy Code@Before("args(name)")
+public void LoggingMethod(String name) {
+    System.out.println("Argument value :" + name);
+}
+In the above code indication loggingMethod is called when any method with one argument name as name is called.
+
+For using return value, we have to use @After advice.
+
+Copy Code@AfterReturning(pointcut = "args(name)", returning = "returnString")
+public void LoggingMethods(String name, Object returnString) {
+     System.out.println("The argument value: "+ name +"Return value" +returnString)
+}
+We have included pointcut= and whatever string we have declared in expression, same value should be in method argument. Here it is returnString.
+
+Similarly, there is exception handling advice:
+
+Copy Code@AfterReturning(pointcut = "args(name)", throwing = "ex")
+public void LoggingMethods(String name, Exception returnString) {
+     System.out.println("The argument value: "+ name +"Exception occurred:-" +ex);
+}
+Fifth Question
+Again we have a situation where when any method is triggered, some functioning is done before and after of that method.
+
+AOP has @Around advice for this.
+
+Let me give a sample code:
+
+Copy Code@Around("execution(* get*())")
+public Object myAroundMethod(ProceedingJointPoint anyMethodUsingAround ) {
+    Object returnValue = null;
+    try {
+        returnValue = anyMethodUsingAround.proceed
+    }
+    catch (Throwable ex) {
+        System.out.println(Exception occurred : " + ex);
+    }
+    return returnValue;
+}
+ProceedingJointPoint indicates the method which is calling myAroundMethod(). Again, if we have any return value, then only we will assign myAroundMethod() return type as Object. Otherwise, void is fine. In Around, we use before as well as after advice. But one more feature we have in around in addition to both advice. In after advice, we cannot manipulate return value, but we can do it in around advice.
+
+One more additional information for developers who are comfortable with XML. Whatever configuration we have dealt with above using annotation, can be done using XML. I am not going to deal much in that, but let me give a simple example. It should be in spring.xml.
+
+Copy Code<bean name="loggingAspect" class "org.nand.testApplication.aspect.LoggingAspect"
+<aop:config>
+    <aop:aspect id="loggingAspect" ref="loggingAspect">
+    <aop:pointcut id = "allGetters" expression = "execution(* get*())"/>
+    <aop:before
+      pointcut-ref ="allGetters method="myBeforeMethod"/>
+</aop:aspect>
+</aop:config>
+Hope my post gives you some idea about AOP. Happy learning!
+
+
+License
+This article, along with any associated source code and files, is licensed under The Code Project Open License (CPOL)
