@@ -1,0 +1,6 @@
+The Counter class in the collections module is purpose built to solve this type of problem:
+
+from collections import Counter
+words = "apple banana apple strawberry banana lemon"
+Counter(words.split())
+# Counter({'apple': 2, 'banana': 2, 'strawberry': 1, 'lemon': 1})
